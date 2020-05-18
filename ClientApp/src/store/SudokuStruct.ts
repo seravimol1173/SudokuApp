@@ -31,6 +31,7 @@ export interface supportmat {
     value: number[][]
 }
 
+
 // -----------------
 // ACTIONS - These are serializable (hence replayable) descriptions of state transitions.
 // They do not themselves have any side-effects; they just describe something that is going to happen.
@@ -57,9 +58,11 @@ interface ReceiveValidation {
     result: string;
     request?: string;
 }
+
+
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
-type KnownAction = RequestSudokuMatrixAction | ReceiveSudokuAction | ValidateSudokuAction | ReceiveValidation;
+type KnownAction = RequestSudokuMatrixAction | ReceiveSudokuAction | ValidateSudokuAction | ReceiveValidation ;
 
 // ----------------
 // ACTION CREATORS - These are functions exposed to UI components that will trigger a state transition.
@@ -74,7 +77,7 @@ export const actionCreators = {
             sudokulevel: sudokulevel
 
         };
-        console.log("store", appState, 'value 2: ', appState.sudokumatrix)
+        //console.log("store", appState, 'value 2: ', appState.sudokumatrix)
         if (appState && appState.sudokumatrix) {
 
             fetch(`sudokugen/createsudoku/${sudokulevel}`, requestOptions)
@@ -101,7 +104,10 @@ export const actionCreators = {
 
             dispatch({ type: 'VALIDATE_SUDOKU_MATRIX', request: request, result: result });
         }
-    }
+    },
+
+    
+    
 };
 
 // ----------------
@@ -119,7 +125,7 @@ export const reducer: Reducer<SudokuStructState> = (state: SudokuStructState | u
     const action = incomingAction as KnownAction;
     switch (action.type) {
         case 'REQUEST_SUDOKU_MATRIX':
-            console.log("request")
+            // console.log("request")
             return {
                 sudokulevel: state.sudokulevel,
                 sudokumatrix: state.sudokumatrix,
@@ -129,7 +135,7 @@ export const reducer: Reducer<SudokuStructState> = (state: SudokuStructState | u
         case 'RECEIVE_SUDOKU_MATRIX':
             // Only accept the incoming data if it matches the most recent request. This ensures we correctly
             // handle out-of-order responses.
-            console.log("receive")
+            // console.log("receive")
             if (action.type === 'RECEIVE_SUDOKU_MATRIX') {
                 return {
                     sudokulevel: action.sudokulevel,
@@ -159,7 +165,9 @@ export const reducer: Reducer<SudokuStructState> = (state: SudokuStructState | u
                 }
             }
             break;
+ 
     }
 
     return state;
 };
+

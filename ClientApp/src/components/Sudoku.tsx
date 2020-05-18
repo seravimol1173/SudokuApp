@@ -5,13 +5,8 @@ import { RouteComponentProps } from 'react-router';
 //import { Link } from 'react-router-dom';
 import { ApplicationState } from '../store';
 import './Sudoku.css';
-//import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
-//import Dropdown from 'react-dropdown';
 import 'react-dropdown/style.css';
-//import { Alert } from 'reactstrap';
-//import { DropDownList } from '@progress/kendo-react-dropdowns';
-
 
 type SudokuStructProps =
     SudokuStructStore.SudokuStructState
@@ -34,9 +29,14 @@ let inputs = {
     value: [1, 2, 3, 4, 5, 6, 7, 8, 9]
 };
 
+let picknumbers = {
+    value: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+};
 let level = "Easy";
 
+let myvalue = 1;
 
+let color =  ['White','White','White','White','White','White','White','White','White'];
 class Sudoku extends React.Component<SudokuStructProps>{
     constructor(props: any) {
         super(props);
@@ -45,6 +45,8 @@ class Sudoku extends React.Component<SudokuStructProps>{
         this.handleChange = this.handleChange.bind(this);
         // this.inpChange = this.inpChange.bind(this);
         this.ensureDataFetched = this.ensureDataFetched.bind(this);
+        this.getNumber = this.getNumber.bind(this);
+        this.setNumber = this.setNumber.bind(this);
 
 
 
@@ -53,6 +55,7 @@ class Sudoku extends React.Component<SudokuStructProps>{
     state = {
         loading: false,
         readytovaliadate: false,
+        change: false,
 
     }
 
@@ -86,8 +89,11 @@ class Sudoku extends React.Component<SudokuStructProps>{
 
         inputs.value = [];
         values.value = [];
-
-
+        let i =0;
+        for(i=0;i<9;i++){
+            color[i] = 'White';
+        }
+        color[0] = '#5f9ea0';
         this.props.requestSudokuMatrix(level);
         this.setState({ loading: true, readytovaliadate: false });
         // this.props.sudokumatrix.map((rows: SudokuStructStore.SudokuCell[],j) =>
@@ -144,16 +150,16 @@ class Sudoku extends React.Component<SudokuStructProps>{
         var aux = "sdfds";
         let index = 0;
         let complete = true;
+        let thischange = this.state.change;
         aux = e.target.id;
-
         index = parseInt(aux.substring(5, (aux.length + 1)));
-        inputs.value[index] = parseInt(e.target.value);
-        //  console.log('perrin', inputs.value, 'value', values.value, aux);
-
+        inputs.value[index] = myvalue;
+        
         let i = 1;
         for (i = 1; i <= counter; i++) {
-            if (inputs.value[i] === 0) {
+            if (inputs.value[i] == null) {
                 complete = false;
+                break;
             }
 
         }
@@ -164,7 +170,9 @@ class Sudoku extends React.Component<SudokuStructProps>{
             this.setState({ readytovaliadate: true });
         }
 
-
+        thischange = ! thischange;
+        e.preventDefault();
+        this.setState({ changes: thischange });
     }
 
     // inpChange = (e:any) => {
@@ -181,6 +189,25 @@ class Sudoku extends React.Component<SudokuStructProps>{
 
     }
 
+    getNumber(e:any){
+        let thischange = this.state.change;
+        myvalue = e.target.textContent;
+        let i = 0;
+        for(i=0;i<9;i++){
+            color[i] = 'White';
+        }
+
+        color[myvalue-1] = '#5f9ea0';
+        thischange = ! thischange;
+        e.preventDefault();
+        this.setState({ changes: thischange });
+     }
+
+    setNumber = (e:any) => {
+        e.persist();
+       
+    }
+
     onResetForm(e: any) {
         e.target.onreset();
     }
@@ -195,10 +222,10 @@ class Sudoku extends React.Component<SudokuStructProps>{
 
         let myclass = "";
         counter = 0;
-        inputs.value = [];
-        values.value = [];
+        // inputs.value = [];
+        // values.value = [];
         return (
-            <form id="sudokuform" onChange={this.handleChange}>
+            <form id="sudokuform" onChange={this.handleChange} >
                 <table className="game-table">
 
                     <tbody>
@@ -217,9 +244,9 @@ class Sudoku extends React.Component<SudokuStructProps>{
                                         counter = counter + 1;
                                         inputname = `text-${counter}`;
                                         values.value[counter] = parseInt(cols.sudokuNumber, 10);
-                                        if (!this.state.readytovaliadate) {
-                                            inputs.value[counter] = 0;
-                                        }
+                                        //  if (!this.state.readytovaliadate) {
+                                        //      inputs.value[counter] = 0;
+                                        //  }
 
                                     }
                                     myclass = "game-cell"
@@ -236,18 +263,27 @@ class Sudoku extends React.Component<SudokuStructProps>{
                                         }
 
                                     }
+                                    if(cols.isVisible)
+                                    {
+                                        return(
+                                            <td key={catId} className={myclass} >
+                                                <p> {cols.sudokuNumber} </p>                                             
+                                            </td>
+                                        )
+                                    }
+                                    else
+                                    {
+                                        myclass = myclass + " game-cell-input"
+                                        return(
+                                            <td key={catId} className={myclass} >
+                                               {inputs.value[counter] == null ? <label id={inputname} onClick={this.handleChange}>#</label> :
+                                               <label  id={inputname} onClick={this.handleChange}>{inputs.value[counter]}</label>                                            
+                                        }
+                                            </td>
 
-
-                                    return (
-
-                                        <td key={catId} className={myclass}>
-                                            {cols.isVisible ? <p> {cols.sudokuNumber} </p> :
-                                                <input id={inputname} defaultValue={inputs.value[counter]}
-                                                    type="number" min="1" max="9" ></input>}
-
-                                        </td>
-                                    )
-                                    // }
+                                        )
+                                    }
+                                                                        
                                 })}
 
 
@@ -286,7 +322,13 @@ class Sudoku extends React.Component<SudokuStructProps>{
                                         </select>
                                     </fieldset>
                                 </div>
-
+ 
+                            </div>
+                            <div className="game-controls-wrapper">                               
+                                    <div className="new-game-button-wrapper">
+                                        <div className="button new-game-button" onClick={this.ensureDataFetched}>Create Sudoku</div>
+                                        {this.state.readytovaliadate ? <div className="button validate-game-button" onClick={this.validatesudoku}>Validate Sudoku</div> : <p></p>}
+                                    </div>
                             </div>
                         </div>
                         <div className="game-flex-wrapper">
@@ -295,20 +337,60 @@ class Sudoku extends React.Component<SudokuStructProps>{
                                 {this.state.loading ? <div id="game" className="game">{this.renderSudoku()}</div> : <div className="game-flex-wrapper center"><p>Create a Sudoku</p></div>}
 
                             </div>
-                            <div className="game-controls-wrapper">
-                                <nav>
-                                    <div className="new-game-button-wrapper">
-                                        <div className="button new-game-button" onClick={this.ensureDataFetched}>Create Sudoku</div>
-                                        {this.state.readytovaliadate ? <div className="button validate-game-button" onClick={this.validatesudoku}>Validate Sudoku</div> : <p></p>}
-                                    </div>
-                                    <div className="new-game-menu" >
-                                        <div className="tooltip-arrow"></div>
-                                        <ul className="selec-difficulty">
-                                            <li className="lost-progress-label">Nope</li>
-                                        </ul>
-                                    </div>
-                                </nav>
+                            <div className="game-wrapper">
 
+                               <table className="selection-table">
+                                   <tbody>
+                                   
+                                       {picknumbers.value.map((row, index) =>(
+                                           <tr key={`row-${index}`}>
+                                               {row.map((col, indx) => (
+                                                <td key={`value-${col}`} className=" game-num-selector" id={`value-${col}`} onClick={this.getNumber} style={{backgroundColor: color[col-1]}}>
+                                                    <h1>{col}</h1>
+                                                </td>
+                                               ))}
+                                           </tr>
+   
+                                       ))}
+                                   
+                                       {/* <tr >
+                                           <td className=" game-num-selector" id="value_1" onClick={this.getNumber}>
+                                               <h1>1</h1>
+                                           </td>
+                                           <td className="game-num-selector" id="value_2" onClick={this.getNumber}>
+                                                <h1>2</h1>
+                                           </td>
+                                           <td className="game-num-selector" id="value_3" onClick={this.getNumber}>
+                                                <h1>3</h1>
+                                           </td>
+
+                                       </tr>
+                                       <tr>
+                                           <td className="game-num-selector" id="value_4" onClick={this.getNumber}>
+                                               <h1>4</h1>
+                                           </td>
+                                           <td className="game-num-selector" id="value_5" onClick={this.getNumber}>
+                                                <h1>5</h1>
+                                           </td >
+                                           <td className="game-num-selector" id="value_6" onClick={this.getNumber}>
+                                                <h1>6</h1>
+                                           </td>
+
+                                       </tr>
+                                       <tr>
+                                           <td className="game-num-selector" id="value_7" onClick={this.getNumber}>
+                                               <h1>7</h1>
+                                           </td>
+                                           <td className="game-num-selector" id="value_8" onClick={this.getNumber}>
+                                                <h1>8</h1 >
+                                           </td>
+                                           <td className="game-num-selector" id="value_9" onClick={this.getNumber}>
+                                                <h1>9</h1>
+                                           </td>
+
+                                       </tr> */}
+                                   </tbody>
+                               </table>
                             </div>
 
                         </div>
